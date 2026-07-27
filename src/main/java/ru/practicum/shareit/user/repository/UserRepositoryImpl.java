@@ -3,7 +3,6 @@ package ru.practicum.shareit.user.repository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ParameterNotValidException;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.ArrayList;
