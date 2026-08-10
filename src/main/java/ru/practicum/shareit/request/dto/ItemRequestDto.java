@@ -1,12 +1,11 @@
 package ru.practicum.shareit.request.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.shareit.item.dto.ItemDto;
 
-import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * TODO Sprint add-item-requests.
@@ -16,11 +15,14 @@ import java.util.List;
 @NoArgsConstructor
 public class ItemRequestDto {
 
-    private long id;
+    @NotBlank(message = "Название не может быть пустым")
+    private String name;
 
+    @NotBlank(message = "Описание не может быть пустым")
     private String description;
 
-    private LocalDateTime created;
+    @NotNull
+    private Boolean available;
 
-    private List<ItemDto> items;
+    private Long requestId;
 }
