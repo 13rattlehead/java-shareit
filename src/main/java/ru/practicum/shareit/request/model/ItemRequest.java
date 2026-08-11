@@ -16,7 +16,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ItemRequest {
-
     private long id;
 
     private String description;

@@ -9,7 +9,6 @@ public interface UserService {
 
     Collection<UserDto> getAllUsers();
 
-
     UserDto create(UserDto userDto);
 
     UserDto getById(long id);
