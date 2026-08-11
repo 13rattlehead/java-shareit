@@ -27,13 +27,6 @@ public class BookingMapper {
                 .build();
     }
 
-    public static Booking toBooking(BookingRequestDto dto) {
-        Booking booking = new Booking();
-        booking.setStart(dto.getStart());
-        booking.setEnd(dto.getEnd());
-        return booking;
-    }
-
     public static List<BookingDto> toBookingDtoList(List<Booking> bookings) {
         return bookings.stream()
                 .map(BookingMapper::toBookingDto)

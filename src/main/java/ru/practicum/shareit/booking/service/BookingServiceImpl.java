@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
@@ -23,6 +24,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
@@ -31,6 +33,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto create(Long userId, BookingRequestDto requestDto) {
+
+        log.info("Создание бронирования пользовтелем {} для вещи  {}", userId, requestDto.getItemId());
 
         User booker = userRepository.findById(userId)
                 .orElseThrow(() ->
@@ -48,11 +52,15 @@ public class BookingServiceImpl implements BookingService {
             throw new AccessException("Нельзя бронировать собственную вещь");
         }
 
-        Booking booking = BookingMapper.toBooking(requestDto);
+        Booking booking = Booking.builder()
+                .start(requestDto.getStart())
+                .end(requestDto.getEnd())
+                .item(item)
+                .booker(booker)
+                .status(BookingStatus.WAITING)
+                .build();
 
-        booking.setBooker(booker);
-        booking.setItem(item);
-        booking.setStatus(BookingStatus.WAITING);
+        log.info("Бронирование {} успешно завершено", booking.getId());
 
         return BookingMapper.toBookingDto(
                 bookingRepository.save(booking)
@@ -61,6 +69,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto approve(Long ownerId, Long bookingId, Boolean approved) {
+
+        log.info("Пользователь {} изменяет статус бронирования для вещи {}", ownerId, bookingId);
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() ->
@@ -80,6 +90,8 @@ public class BookingServiceImpl implements BookingService {
                         : BookingStatus.REJECTED
         );
 
+        log.info("Статус бронирования вещи {} изменен на {}", booking.getId(), booking.getStatus());
+
         return BookingMapper.toBookingDto(
                 bookingRepository.save(booking)
         );
@@ -87,6 +99,10 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto getById(Long userId, Long bookingId) {
+
+        log.info("Получение бронирования {} пользователем {}",
+                bookingId,
+                userId);
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() ->
@@ -107,6 +123,10 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getBookingsByBooker(Long userId, BookingState state) {
+
+        log.info("Получение списка бронирований пользователя {}, состояние {}",
+                userId,
+                state);
 
         userRepository.findById(userId)
                 .orElseThrow(() ->
@@ -137,6 +157,10 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getBookingsByOwner(Long ownerId, BookingState state) {
+
+        log.info("Получение списка бронирований владельца {}, состояние {}",
+                ownerId,
+                state);
 
         userRepository.findById(ownerId)
                 .orElseThrow(() ->
