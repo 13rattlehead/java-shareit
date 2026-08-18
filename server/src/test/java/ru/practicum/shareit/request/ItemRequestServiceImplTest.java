@@ -14,6 +14,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -123,5 +124,50 @@ class ItemRequestServiceImplTest {
         assertThat(result.getDescription())
                 .isEqualTo("Нужна дрель");
         assertThat(result.getCreated()).isNotNull();
+    }
+
+    @Test
+    void create_shouldThrowWhenUserNotFound() {
+        ItemRequestCreateDto dto = new ItemRequestCreateDto();
+        dto.setDescription("Нужна дрель");
+
+        assertThatThrownBy(() ->
+                itemRequestService.create(999999L, dto))
+                .isInstanceOf(
+                        ru.practicum.shareit.exception.NotFoundException.class);
+    }
+
+    @Test
+    void getRequestById_shouldThrowWhenRequestNotFound() {
+        assertThatThrownBy(() ->
+                itemRequestService.getRequestById(999999L))
+                .isInstanceOf(
+                        ru.practicum.shareit.exception.NotFoundException.class);
+    }
+
+    @Test
+    void getUserRequests_shouldReturnEmptyWhenNoRequests() {
+        User user = new User();
+        user.setName("Empty");
+        user.setEmail("empty" + System.nanoTime() + "@test.ru");
+
+        user = userRepository.save(user);
+
+        assertThat(
+                itemRequestService.getUserRequests(user.getId()))
+                .isEmpty();
+    }
+
+    @Test
+    void getAllRequests_shouldReturnEmptyWhenNoOtherRequests() {
+        User user = new User();
+        user.setName("Empty");
+        user.setEmail("empty" + System.nanoTime() + "@test.ru");
+
+        user = userRepository.save(user);
+
+        assertThat(
+                itemRequestService.getAllRequests(user.getId()))
+                .isEmpty();
     }
 }

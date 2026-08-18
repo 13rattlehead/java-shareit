@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.CommentRequestDto;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
@@ -326,5 +327,181 @@ class ItemServiceImplTest {
                 .isEqualTo("Отличная дрель!");
         assertThat(comments.get(0).getAuthor().getId())
                 .isEqualTo(savedBooker.getId());
+    }
+
+    @Test
+    void create_shouldThrowWhenUserNotFound() {
+        ItemCreateDto dto = new ItemCreateDto();
+        dto.setName("Дрель");
+        dto.setDescription("Описание");
+        dto.setAvailable(true);
+
+        assertThatThrownBy(() ->
+                itemService.create(999999L, dto))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void create_shouldThrowWhenRequestNotFound() {
+        User user = new User();
+        user.setName("Denis");
+        user.setEmail("denis" + System.nanoTime() + "@test.ru");
+
+        User savedUser = userRepository.save(user);
+
+        ItemCreateDto dto = new ItemCreateDto();
+        dto.setName("Дрель");
+        dto.setDescription("Описание");
+        dto.setAvailable(true);
+        dto.setRequestId(999999L);
+
+        assertThatThrownBy(() ->
+                itemService.create(savedUser.getId(), dto))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void update_shouldThrowWhenItemNotFound() {
+        User user = new User();
+        user.setName("Denis");
+        user.setEmail("denis" + System.nanoTime() + "@test.ru");
+
+        User savedUser = userRepository.save(user);
+
+        ItemDto dto = ItemDto.builder()
+                .name("Дрель")
+                .description("Описание")
+                .available(true)
+                .build();
+
+        assertThatThrownBy(() ->
+                itemService.update(savedUser.getId(), 999999L, dto))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void getById_shouldThrowWhenItemNotFound() {
+        User user = new User();
+        user.setName("Denis");
+        user.setEmail("denis" + System.nanoTime() + "@test.ru");
+
+        User savedUser = userRepository.save(user);
+
+        assertThatThrownBy(() ->
+                itemService.getById(999999L, savedUser.getId()))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void search_shouldReturnEmptyForBlankText() {
+        assertThat(itemService.search("")).isEmpty();
+        assertThat(itemService.search("   ")).isEmpty();
+        assertThat(itemService.search(null)).isEmpty();
+    }
+
+    @Test
+    void getById_shouldReturnLastAndNextBookingForOwner() {
+        User owner = new User();
+        owner.setName("Owner");
+        owner.setEmail("owner" + System.nanoTime() + "@test.ru");
+
+        User savedOwner = userRepository.save(owner);
+
+        User booker = new User();
+        booker.setName("Booker");
+        booker.setEmail("booker" + System.nanoTime() + "@test.ru");
+
+        User savedBooker = userRepository.save(booker);
+
+        ItemCreateDto dto = new ItemCreateDto();
+        dto.setName("Дрель");
+        dto.setDescription("Описание");
+        dto.setAvailable(true);
+
+        ItemDto created = itemService.create(savedOwner.getId(), dto);
+
+        Item item = itemRepository.findById(created.getId()).orElseThrow();
+
+        Booking past = new Booking();
+        past.setItem(item);
+        past.setBooker(savedBooker);
+        past.setStart(LocalDateTime.now().minusDays(2));
+        past.setEnd(LocalDateTime.now().minusDays(1));
+        past.setStatus(BookingStatus.APPROVED);
+
+        bookingRepository.save(past);
+
+        Booking future = new Booking();
+        future.setItem(item);
+        future.setBooker(savedBooker);
+        future.setStart(LocalDateTime.now().plusDays(1));
+        future.setEnd(LocalDateTime.now().plusDays(2));
+        future.setStatus(BookingStatus.APPROVED);
+
+        bookingRepository.save(future);
+
+        ItemDto result =
+                itemService.getById(created.getId(), savedOwner.getId());
+
+        assertThat(result.getLastBooking()).isNotNull();
+        assertThat(result.getNextBooking()).isNotNull();
+    }
+
+    @Test
+    void addComment_shouldThrowWhenUserNotFound() {
+        CommentRequestDto dto = new CommentRequestDto();
+        dto.setText("Комментарий");
+
+        assertThatThrownBy(() ->
+                itemService.addComment(999999L, 999999L, dto))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void addComment_shouldThrowWhenItemNotFound() {
+        User user = new User();
+        user.setName("Booker");
+        user.setEmail("booker" + System.nanoTime() + "@test.ru");
+
+        User savedUser = userRepository.save(user);
+
+        CommentRequestDto dto = new CommentRequestDto();
+        dto.setText("Комментарий");
+
+        assertThatThrownBy(() ->
+                itemService.addComment(savedUser.getId(), 999999L, dto))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void addComment_shouldThrowWhenUserDidNotRentItem() {
+        User owner = new User();
+        owner.setName("Owner");
+        owner.setEmail("owner" + System.nanoTime() + "@test.ru");
+
+        User savedOwner = userRepository.save(owner);
+
+        User user = new User();
+        user.setName("User");
+        user.setEmail("user" + System.nanoTime() + "@test.ru");
+
+        User savedUser = userRepository.save(user);
+
+        ItemCreateDto itemDto = new ItemCreateDto();
+        itemDto.setName("Дрель");
+        itemDto.setDescription("Описание");
+        itemDto.setAvailable(true);
+
+        ItemDto item = itemService.create(savedOwner.getId(), itemDto);
+
+        CommentRequestDto commentDto = new CommentRequestDto();
+        commentDto.setText("Комментарий");
+
+        assertThatThrownBy(() ->
+                itemService.addComment(
+                        savedUser.getId(),
+                        item.getId(),
+                        commentDto))
+                .isInstanceOf(jakarta.validation.ValidationException.class);
     }
 }
