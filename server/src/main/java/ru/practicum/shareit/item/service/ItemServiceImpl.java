@@ -182,7 +182,7 @@ public class ItemServiceImpl implements ItemService {
                         new NotFoundException("Вещь не найдена")
                 );
 
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Moscow"));
+        LocalDateTime now = LocalDateTime.now();
 
         boolean hasBooking =
                 bookingRepository.existsByBookerIdAndItemIdAndStatusAndEndBefore(
