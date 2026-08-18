@@ -36,13 +36,11 @@ class BookingControllerTest {
         mockMvc.perform(post("/bookings")
                         .header("X-Sharer-User-Id", 1L)
                         .contentType("application/json")
-                        .content("""
-                                {
-                                  "itemId": 1,
-                                  "start": "2026-08-18T16:00:00",
-                                  "end": "2026-08-18T17:00:00"
-                                }
-                                """))
+                        .content("{"
+                                + "\"itemId\":1,"
+                                + "\"start\":\"2026-08-18T16:00:00\","
+                                + "\"end\":\"2026-08-18T17:00:00\""
+                                + "}"))
                 .andExpect(status().isOk());
 
         verify(bookingService).create(any(), any());

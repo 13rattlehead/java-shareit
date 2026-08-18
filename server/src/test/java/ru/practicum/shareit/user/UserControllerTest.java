@@ -57,12 +57,10 @@ class UserControllerTest {
 
         mockMvc.perform(post("/users")
                         .contentType("application/json")
-                        .content("""
-                                {
-                                  "name": "Denis",
-                                  "email": "denis@test.ru"
-                                }
-                                """))
+                        .content("{"
+                                + "\"name\":\"Denis\","
+                                + "\"email\":\"denis@test.ru\""
+                                + "}"))
                 .andExpect(status().isOk());
 
         verify(userService).create(any(UserDto.class));
@@ -77,12 +75,10 @@ class UserControllerTest {
 
         mockMvc.perform(patch("/users/1")
                         .contentType("application/json")
-                        .content("""
-                                {
-                                  "name": "New Denis",
-                                  "email": "new@test.ru"
-                                }
-                                """))
+                        .content("{"
+                                + "\"name\":\"New Denis\","
+                                + "\"email\":\"new@test.ru\""
+                                + "}"))
                 .andExpect(status().isOk());
 
         verify(userService).update(
