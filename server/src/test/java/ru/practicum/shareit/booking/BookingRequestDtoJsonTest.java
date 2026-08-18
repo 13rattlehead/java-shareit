@@ -34,13 +34,9 @@ class BookingRequestDtoJsonTest {
 
     @Test
     void shouldDeserializeBookingRequest() throws Exception {
-        String content = """
-                {
-                    "itemId": 100,
-                    "start": "2026-08-18T16:25:20",
-                    "end": "2026-08-18T17:25:20"
-                }
-                """;
+        String content = "{\"itemId\":100,"
+                + "\"start\":\"2026-08-18T16:25:20\","
+                + "\"end\":\"2026-08-18T17:25:20\"}";
 
         BookingRequestDto dto = json.parseObject(content);
 

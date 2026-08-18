@@ -36,14 +36,10 @@ class ItemRequestDtoJsonTest {
 
     @Test
     void deserialize_shouldReadLocalDateTime() throws Exception {
-        String jsonContent = """
-                {
-                  "id": 1,
-                  "description": "Нужна дрель",
-                  "created": "2026-08-18T15:30:00",
-                  "items": []
-                }
-                """;
+        String jsonContent = "{\"id\":1,"
+                + "\"description\":\"Нужна дрель\","
+                + "\"created\":\"2026-08-18T15:30:00\","
+                + "\"items\":[]}";
 
         ItemRequestDto dto = json.parseObject(jsonContent);
 
